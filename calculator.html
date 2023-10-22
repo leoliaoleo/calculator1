@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculator</title>
+<style>
+    button {
+        width: 50px;
+        height: 50px;
+    }
+    #result {
+        width: 400px;
+    }
+</style>
+</head>
+<body>
+    <h1>Calculator</h1>
+    <input type="text" id="result" readonly>
+    <table>
+        <tr>
+            <td><button onclick="appendNumber('1')">1</button></td>
+            <td><button onclick="appendNumber('2')">2</button></td>
+            <td><button onclick="appendNumber('3')">3</button></td>
+            <td><button onclick="appendOperator('+')">+</button></td>
+        </tr>
+        <tr>
+            <td><button onclick="appendNumber('4')">4</button></td>
+            <td><button onclick="appendNumber('5')">5</button></td>
+            <td><button onclick="appendNumber('6')">6</button></td>
+            <td><button onclick="appendOperator('-')">-</button></td>
+        </tr>
+        <tr>
+            <td><button onclick="appendNumber('7')">7</button></td>
+            <td><button onclick="appendNumber('8')">8</button></td>
+            <td><button onclick="appendNumber('9')">9</button></td>
+            <td><button onclick="appendOperator('*')">*</button></td>
+        </tr>
+        <tr>
+            <td><button onclick="appendNumber('0')">0</button></td>
+            <td><button onclick="clearResult()">C</button></td>
+            <td><button onclick="calculate()">=</button></td>
+            <td><button onclick="appendOperator('/')">/</button></td>
+        </tr>
+    </table>
+    <h2>History</h2>
+    <ul id="history"></ul>
+    <button onclick="clearHistory()">Clear History</button>
+    <button onclick="returnHistory()">Return History</button>
+    <br>
+    <a href="/history">View Calculation History</a>
+    <br>
+    <a href="/clear">Clear Calculation History</a>
+<script>
+    let resultField = document.getElementById("result");
+    let historyList = document.getElementById("history");
+    let expression = "";
+    let history = []; // 存储历史记录的数组
+    let historyIndex = 0; // 记录当前历史记录索引
+
+    function appendNumber(num) {
+        expression += num;
+        resultField.value = expression;
+    }
+
+    function appendOperator(operator) {
+        if (expression !== "") {
+            expression += operator;
+            resultField.value = expression;
+        }
+    }
+
+    function calculate() {
+        if (expression !== "") {
+            let result;
+            try {
+                result = eval(expression);
+                resultField.value = result;
+                addToHistory(expression + " = " + result);
+                expression = "";
+                historyIndex = history.length - 1; // 计算最新的历史记录索引
+            } catch (error) {
+                resultField.value = "Error";
+                expression = "";
+            }
+        }
+    }
+
+    function clearResult() {
+        expression = "";
+        resultField.value = "";
+    }
+
+    function clearHistory() {
+        historyList.innerHTML = "";
+        history = []; // 清空历史记录数组
+        historyIndex = 0; // 重置历史记录索引
+    }
+
+  function addToHistory() {
+  let result = eval(expression); // 计算表达式的结果
+  let li = document.createElement("li");
+  li.innerText = result;
+  historyList.appendChild(li);
+  history.push(result); // 将运算结果添加到历史记录数组中
+}
+
+function returnHistory() {
+  if (history.length > 0) {
+    if (historyIndex >= 0) {
+      resultField.value = history[historyIndex]; // 更新结果字段的值
+      historyIndex--; // 减小历史记录索引
+    } else {
+      // 如果历史记录已经返回到最初输入的一个，就清空结果字段和历史记录索引
+      resultField.value = "";
+      historyIndex = 0;
+    }
+  }
+}
+function addToHistory() {
+  let result = eval(expression); // 计算表达式的结果
+  let li = document.createElement("li");
+  li.innerText = result;
+  historyList.appendChild(li);
+  history.push(result); // 将运算结果添加到历史记录数组中
+  // 发送POST请求将历史记录存入数据库
+  let xhr = new XMLHttpRequest();
+  xhr.open('POST', 'save_history.php', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      console.log(xhr.responseText); // 可以根据需要处理服务器的响应
+    }
+  };
+  xhr.send(JSON.stringify({ history: result }));
+}
+</script>
+</body>
+</html>
